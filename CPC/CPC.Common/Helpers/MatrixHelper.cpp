@@ -9,7 +9,7 @@ namespace CPC
 		{
 			namespace MatrixHelper
 			{
-				void fillMatrix(double** matrix, int rows, int cols)
+				void fillMatrix(double**& matrix, int rows, int cols)
 				{
 					srand(time(NULL));
 					for (int i = 0; i < rows; i++)
@@ -159,46 +159,65 @@ namespace CPC
 					}
 
 					// last matrix
-						int absoluteOffset = (sizeX - sizeXDivided) * sizeY;
-						for (int x = 0; x < sizeXDivided; x++)
+					int absoluteOffset = (sizeX - sizeXDivided) * sizeY;
+					for (int x = 0; x < sizeXDivided; x++)
+					{
+						int offsetX = x * sizeY;
+						for (int y = 0; y < sizeY; y++)
 						{
-							int offsetX = x * sizeY;
-							for (int y = 0; y < sizeY; y++)
-							{
-								int offsetY = y;
-								int offset = absoluteOffset + offsetX + offsetY;
-								*(allocatedData + offset) = PResultsToMerge[subMatrixesCount - 1][x][y];
+							int offsetY = y;
+							int offset = absoluteOffset + offsetX + offsetY;
+							*(allocatedData + offset) = PResultsToMerge[subMatrixesCount - 1][x][y];
+						}
+					}
+
+					return mergedMatrix;
+
+				}
+
+				void deleteArray(double*& arr)
+				{
+					if (arr != nullptr)
+					{
+						delete[] arr;
+						arr = nullptr;
+					}
+				}
+
+				void deleteArray(double**& arr, int x)
+				{
+					if (arr != nullptr)
+					{
+						for (int i = 0; i < x; i++) {
+							if (arr[i] != nullptr) {
+								delete[] arr[i];
+								arr[i] = nullptr;
 							}
 						}
-					
-						return mergedMatrix;
-
-				}
-
-				void deleteArray(double* arr)
-				{
-					delete[] arr;
-				}
-
-				void deleteArray(double** arr, int x)
-				{
-					for (int i = 0; i < x; i++) {
-						delete[] arr[i];
+						delete[] arr;
+						arr = nullptr;
 					}
-
-					delete[] arr;
 				}
 
-				void deleteArray(double*** arr, int x, int y)
+				void deleteArray(double***& arr, int x, int y)
 				{
-					for (int i = 0; i < x; i++) {
-						for (int j = 0; j < y; j++) {
-							delete[] arr[i][j];
+					if (arr != nullptr)
+					{
+						for (int i = 0; i < x; i++) {
+							for (int j = 0; j < y; j++) {
+								if (arr[i][j] != nullptr)
+								{
+									delete[] arr[i][j];
+									arr[i][j] = nullptr;
+								}
+							}
+							delete[] arr[i];
+							arr[i] = nullptr;
 						}
-						delete[] arr[i];
-					}
 
-					delete[] arr;
+						delete[] arr;
+						arr = nullptr;
+					}
 				}
 			}
 		}
