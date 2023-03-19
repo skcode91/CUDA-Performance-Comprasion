@@ -1,121 +1,185 @@
 ﻿
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-
+#include <iostream>
 #include <stdio.h>
+#include "../CPC.Common/Helpers/MatrixHelper.cpp"
+#include "../CPC.Common/Helpers/CalculationHelper.h"
+#include "../CPC.Common/Helpers/BinaryFileHelper.cpp"
 
-cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
 
-__global__ void addKernel(int *c, const int *a, const int *b)
+cudaError_t addWithCuda(int* c, const int* a, const int* b, unsigned int size);
+
+__global__ void addKernel(int* c, const int* a, const int* b)
 {
-    int i = threadIdx.x;
-    c[i] = a[i] + b[i];
+	int i = threadIdx.x;
+	c[i] = a[i] + b[i];
+}
+
+__global__ void helloFromGpu()
+{
+	printf("Hello World! frin thread [%d, %d] \
+        From device\n", threadIdx.x, blockIdx.x);
+}
+
+__global__ void square(float* d_out, float* d_in)
+{
+	int idx = threadIdx.x;
+	float x = d_in[idx];
+	d_out[idx] = x * x;
+}
+
+__global__ void calculateOnPaddedMatrix(double* dArrOut, double* dArrIn, int paddedSizeX, int paddedSizeY)
+{
+		int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
+		int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+
+		if (i >= 1 && i < paddedSizeX - 1 && j >= 1 && j < paddedSizeY - 1)
+		{
+			//double sum = 0.0;
+			//int numNeighbors = 8;
+			//if (i == 1 || i == paddedSizeX - 2 || j == 1 || j == paddedSizeY - 2)
+			//{
+			//	numNeighbors = 5;
+			//}
+			//if ((i == 1 && j == 1) || (i == 1 && j == paddedSizeY - 2) || (i == paddedSizeX - 2 && j == 1) || (i == paddedSizeX - 2 && j == paddedSizeY - 2))
+			//{
+			//	numNeighbors = 3;
+			//}
+			//sum += matrix[i - 1][j - 1];
+			//sum += matrix[i - 1][j];
+			//sum += matrix[i - 1][j + 1];
+			//sum += matrix[i][j - 1];
+			//sum += matrix[i][j + 1];
+			//sum += matrix[i + 1][j - 1];
+			//sum += matrix[i + 1][j];
+			//sum += matrix[i + 1][j + 1];
+			//resultsMatrix[i - 1][j - 1] = sum / numNeighbors;
+	}
+}
+
+void firstTest()
+{
+
+	//helloFromGpu << <2, 2 >> > ();
+	//cudaDeviceSynchronize();
+
+	const int arrSize = 20;
+	const int bytesCount = arrSize * sizeof(float);
+
+	float arrIn[arrSize] = {
+		1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f,
+		11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f, 17.0f, 18.0f, 19.0f, 20.0f
+	};
+	float ParrIn = *arrIn;
+	float* arrOut = new float[arrSize];
+
+	float* dArrIn;
+	float* dArrOut;
+
+	cudaMalloc((void**)&dArrIn, bytesCount);
+	cudaMalloc((void**)&dArrOut, bytesCount);
+
+
+	cudaMemcpy(dArrIn, arrIn, bytesCount, cudaMemcpyHostToDevice);
+
+	square << <1, arrSize >> > (dArrOut, dArrIn);
+
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(arrOut, dArrOut, bytesCount, cudaMemcpyDeviceToHost);
+
+	for (int i = 0; i < arrSize; i++)
+	{
+		std::cout << arrOut[i] << " ";
+	}
+
+	cudaFree(dArrIn);
+	cudaFree(dArrOut);
+
 }
 
 int main()
 {
-    const int arraySize = 5;
-    const int a[arraySize] = { 1, 2, 3, 4, 5 };
-    const int b[arraySize] = { 10, 20, 30, 40, 50 };
-    int c[arraySize] = { 0 };
+	// firstTest();
 
-    // Add vectors in parallel.
-    cudaError_t cudaStatus = addWithCuda(c, a, b, arraySize);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addWithCuda failed!");
-        return 1;
-    }
+		//	//	//	settings	//	//	//	//	//	//
 
-    printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n",
-        c[0], c[1], c[2], c[3], c[4]);
+	const int sizeX = 18000;	// cols
+	const int sizeY = 18000;	// rows
+	const int subMatrixesCount = 500;
 
-    // cudaDeviceReset must be called before exiting in order for profiling and
-    // tracing tools such as Nsight and Visual Profiler to show complete traces.
-    cudaStatus = cudaDeviceReset();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaDeviceReset failed!");
-        return 1;
-    }
+	const std::string matrixFilePath = "D:/matrix.bin";
+	const std::string probeFilePath = "D:/probe2.txt";
 
-    return 0;
-}
+	//	//	//	variables	//	//	//	//	//	//
 
-// Helper function for using CUDA to add vectors in parallel.
-cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)
-{
-    int *dev_a = 0;
-    int *dev_b = 0;
-    int *dev_c = 0;
-    cudaError_t cudaStatus;
+	int overlap = 2;
+	int sizeXDivided, lastOverlap;
 
-    // Choose which GPU to run on, change this on a multi-GPU system.
-    cudaStatus = cudaSetDevice(0);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
-        goto Error;
-    }
+	CPC::Common::Helpers::MatrixHelper::divideWithOverlap(sizeX, subMatrixesCount, overlap, &sizeXDivided, &lastOverlap);
 
-    // Allocate GPU buffers for three vectors (two input, one output)    .
-    cudaStatus = cudaMalloc((void**)&dev_c, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
+	int paddedSizeX = sizeXDivided + 2;
+	int paddedSizeY = sizeY + 2;
 
-    cudaStatus = cudaMalloc((void**)&dev_a, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
+	//	//	//	//	//	//	//	//	//	//	//	//
 
-    cudaStatus = cudaMalloc((void**)&dev_b, size * sizeof(int));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
+	std::cout << "Ilosc pamieci wykorzystywanej przez macierz to " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
 
-    // Copy input vectors from host memory to GPU buffers.
-    cudaStatus = cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMemcpy failed!");
-        goto Error;
-    }
+	double* allocatedMemoryForMatrix = new double[sizeX * sizeY];
+	double** matrix = new double* [sizeX];
+	for (int i = 0; i < sizeX; i++)
+	{
+		matrix[i] = allocatedMemoryForMatrix + i * sizeY;
+	}
 
-    cudaStatus = cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMemcpy failed!");
-        goto Error;
-    }
 
-    // Launch a kernel on the GPU with one thread for each element.
-    addKernel<<<1, size>>>(dev_c, dev_a, dev_b);
+	std::cout << "Otwieranie pliku..." << std::endl;
+	CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(matrix, matrixFilePath, sizeY, sizeX);
 
-    // Check for any errors launching the kernel
-    cudaStatus = cudaGetLastError();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-        goto Error;
-    }
-    
-    // cudaDeviceSynchronize waits for the kernel to finish, and returns
-    // any errors encountered during the launch.
-    cudaStatus = cudaDeviceSynchronize();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
-        goto Error;
-    }
+	double*** subMatrixes = CPC::Common::Helpers::MatrixHelper::divideMatrixToZeroPadded(matrix, sizeX, sizeY, sizeXDivided, sizeY, subMatrixesCount, overlap, lastOverlap);
 
-    // Copy output vector from GPU buffer to host memory.
-    cudaStatus = cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMemcpy failed!");
-        goto Error;
-    }
+	int size = subMatrixesCount * sizeY * sizeXDivided;
+	double* allocatedMemoryForResultToMerge = new double[size];
+	double*** resultsToMerge = new double** [subMatrixesCount];
+	for (int i = 0; i < subMatrixesCount; i++)
+	{
+		resultsToMerge[i] = new double* [sizeXDivided];
+		for (int j = 0; j < sizeXDivided; j++)
+		{
+			resultsToMerge[i][j] = allocatedMemoryForResultToMerge + i * sizeY * sizeXDivided + j * sizeXDivided;
+		}
+	}
 
-Error:
-    cudaFree(dev_c);
-    cudaFree(dev_a);
-    cudaFree(dev_b);
-    
-    return cudaStatus;
+	int dSubMatrixesBytesCount = subMatrixesCount * paddedSizeX * paddedSizeY * sizeof(double);
+	int dResultsToMergeBytesCount = subMatrixesCount * sizeY * sizeXDivided * sizeof(double);
+
+	double* dSubMatrixes;
+	double* dResultsToMerge;
+	cudaMalloc((void**)&dSubMatrixes, dSubMatrixesBytesCount);
+	cudaMalloc((void**)&dResultsToMerge, dResultsToMergeBytesCount);
+
+	cudaMemcpy(dSubMatrixes, subMatrixes, dSubMatrixesBytesCount, cudaMemcpyHostToDevice);
+
+	dim3 threadsPerBlock(16, 16);
+	dim3 numBlocks(paddedSizeX / threadsPerBlock.x + 1, paddedSizeY / threadsPerBlock.y + 1);
+
+	clock_t start2 = clock();
+
+	//calculateOnPaddedMatrix << <numBlocks, threadsPerBlock >> > ( // );
+
+	cudaMemcpy(allocatedMemoryForResultToMerge, dResultsToMerge, dResultsToMergeBytesCount, cudaMemcpyDeviceToHost);
+
+	double** results2 = CPC::Common::Helpers::MatrixHelper::mergeMatrices(resultsToMerge, sizeX, sizeY, subMatrixesCount, sizeXDivided, overlap, lastOverlap);
+	clock_t end2 = clock();
+
+	double duration2 = double(end2 - start2) / CLOCKS_PER_SEC * 1000;
+	std::cout << "Obliczenia zakonczono w czasie " << duration2 << " ms" << std::endl;
+
+	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, results2, sizeY, sizeX);
+
+	cudaFree(dResultsToMerge);
+	cudaFree(dSubMatrixes);
+
+	return 0;
 }
