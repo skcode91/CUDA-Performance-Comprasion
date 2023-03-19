@@ -53,11 +53,12 @@ namespace CPC
 				{
 					int paddedSizeX = sizeX + 2;
 					int paddedSizeY = sizeY + 2;
-					double** paddedMatrix = new double* [paddedSizeX];
 
+					double* allocatedMemory = new double[paddedSizeX * paddedSizeY];
+					double** paddedMatrix = new double* [paddedSizeX];
 					for (int i = 0; i < paddedSizeX; i++)
 					{
-						paddedMatrix[i] = new double[paddedSizeX];
+						paddedMatrix[i] = allocatedMemory + i * paddedSizeY;
 					}
 
 					for (int i = 0; i < paddedSizeX; i++)
@@ -84,8 +85,8 @@ namespace CPC
 					int paddedSizeX = sizeXDivided + 2;
 					int paddedSizeY = sizeYDivided + 2;
 
-					double*** subMatrices = new double** [subMatrixesCount];
 					double* allocatedMemory = new double[subMatrixesCount * paddedSizeX * paddedSizeY];
+					double*** subMatrices = new double** [subMatrixesCount];
 
 					for (int i = 0; i < subMatrixesCount; i++) {
 						subMatrices[i] = new double* [paddedSizeX];
@@ -99,10 +100,7 @@ namespace CPC
 					for (int i = 0; i < subMatrixesCount; i++)
 					{
 						int absoluteOffset = i * paddedSizeX * paddedSizeY;
-						if (i == subMatrixesCount - 1)
-						{
-						//	absoluteOffset = (sizeX - paddedSizeX) * paddedSizeX * paddedSizeY;
-						}
+
 						for (int x = 0; x < paddedSizeX; x++)
 						{
 							int xOffset = x * paddedSizeY;
@@ -110,10 +108,7 @@ namespace CPC
 							{
 								int yOffset = y;
 								int offset = absoluteOffset + xOffset + yOffset;
-								//if (i == subMatrixesCount - 1 && x == paddedSizeX - 1)
-								//{
-								//	offset -= (lastOverlap - overlap) * paddedSizeY;
-								//}
+
 								if (x == 0 || x == paddedSizeX - 1 || y == 0 || y == paddedSizeY - 1)
 								{
 									*(allocatedMemory + offset) = 0.0;
@@ -122,44 +117,15 @@ namespace CPC
 								{
 									double w = matrix[startAbsoluteX + x - 1][y - 1];
 									*(allocatedMemory + offset) = matrix[startAbsoluteX + x - 1][y - 1];
-									//std::cout << " " << matrix[startAbsoluteX + x - 1][y - 1];
 								}
 							}
-							//std::cout << std::endl;
 						}
 						startAbsoluteX += (sizeXDivided - overlap);
 						if (startAbsoluteX > sizeX - sizeXDivided)
 						{
 							startAbsoluteX = sizeX - sizeXDivided;
 						}
-						//if (i == subMatrixesCount - 1)
-						//{
-
-						//}
-						
-						//startAbsoluteX = startAbsoluteX + sizeXDivided < sizeY ? startAbsoluteX + sizeXDivided : sizeY - sizeXDivided;
 					}
-
-
-					//for (int i = 0; i < subMatrixesCount; i++)
-					//{
-					//	for (int x = 0; x < paddedSizeX; x++)
-					//	{
-					//		for (int y = 0; y < paddedSizeY; y++)
-					//		{
-					//			std::cout << subMatrices[i][x][y] << " ";
-					//		}
-					//		std::cout << std::endl;
-
-
-					//	}
-					//	std::cout << std::endl;
-					//	std::cout << std::endl;
-
-					//}
-
-					//std::cout <<  " - - - - - " << std::endl;
-					//std::cout << std::endl;
 
 					return subMatrices;
 				}
@@ -188,14 +154,11 @@ namespace CPC
 								int offset = absoluteOffset + xOffset + yOffset;
 
 								*(allocatedData + offset) = PResultsToMerge[i][x][y];
-								//mergedMatrix[mergedRowIndex][y - 1] = subMatrices[i][x][y];
 							}
 						}
 					}
 
 					// last matrix
-					//if (lastOverlap > 0)
-					//{
 						int absoluteOffset = (sizeX - sizeXDivided) * sizeY;
 						for (int x = 0; x < sizeXDivided; x++)
 						{
@@ -205,13 +168,9 @@ namespace CPC
 								int offsetY = y;
 								int offset = absoluteOffset + offsetX + offsetY;
 								*(allocatedData + offset) = PResultsToMerge[subMatrixesCount - 1][x][y];
-								//std::cout << PResultsToMerge[subMatrixesCount - 1][x][y] << " ";
 							}
-							std::cout << std::endl;
 						}
 					
-						//std::cout << " ^^^^^^^^^^^^^ " << std::endl;
-
 						return mergedMatrix;
 
 				}

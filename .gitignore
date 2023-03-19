@@ -11,3 +11,4 @@ CPC/**/*.user
 CPC/**/*.vcxproj
 CPC/**/*.filters
 CPC/CPC.Interface/probe.bin
+CPC/CPC.Interface/matrix.bin
