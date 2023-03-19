@@ -10,3 +10,4 @@ CPC/CPC.Common/x64/**
 CPC/**/*.user
 CPC/**/*.vcxproj
 CPC/**/*.filters
+CPC/CPC.Interface/probe.bin

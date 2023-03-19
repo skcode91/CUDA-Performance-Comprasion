@@ -10,27 +10,45 @@ namespace CPC
 			{
 				double** calculateOnPaddedMatrix(double** matrix, int rows, int cols)
 				{
-					double** resultMatrix = new double* [rows];
-					for (int i = 0; i < rows; i++)
+					
+					int padSize = 1;
+					int paddedRows = rows;
+					int paddedCols = cols;
+
+					double** resultMatrix = new double* [rows - 2];
+					for (int i = 0; i < rows - 2; i++)
 					{
-						resultMatrix[i] = new double[cols];
+						resultMatrix[i] = new double[cols - 2];
 					}
 
-					for (int i = 0; i < rows; i++)
+					for (int i = padSize; i < paddedRows - padSize; i++)
 					{
-						for (int j = 0; j < cols; j++)
+						for (int j = padSize; j < paddedCols - padSize; j++)
 						{
 							double sum = 0.0;
-							sum += matrix[i][j];
+							int numNeighbors = 8;
+							if (i == padSize || i == paddedRows - padSize - 1)
+							{
+								numNeighbors = 5;
+							}
+							if (j == padSize || j == paddedCols - padSize - 1)
+							{
+								numNeighbors = 5;
+							}
+							if ((i == padSize && j == padSize) || (i == padSize && j == paddedCols - padSize - 1) ||
+								(i == paddedRows - padSize - 1 && j == padSize) || (i == paddedRows - padSize - 1 && j == paddedCols - padSize - 1))
+							{
+								numNeighbors = 3;
+							}
+							sum += matrix[i - 1][j - 1];
+							sum += matrix[i - 1][j];
+							sum += matrix[i - 1][j + 1];
+							sum += matrix[i][j - 1];
 							sum += matrix[i][j + 1];
-							sum += matrix[i][j + 2];
+							sum += matrix[i + 1][j - 1];
 							sum += matrix[i + 1][j];
-							sum += matrix[i + 1][j + 2];
-							sum += matrix[i + 2][j];
-							sum += matrix[i + 2][j + 1];
-							sum += matrix[i + 2][j + 2];
-
-							resultMatrix[i][j] = sum / 8.0;
+							sum += matrix[i + 1][j + 1];
+							resultMatrix[i - padSize][j - padSize] = sum / numNeighbors;
 						}
 					}
 
