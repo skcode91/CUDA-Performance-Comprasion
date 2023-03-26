@@ -27,7 +27,7 @@ namespace CPC
 					file.close();
 				}
 
-				void readMatrixFromFile(double **matrix, const std::string& filePath, int rows, int cols)
+				void readMatrixFromFile(double** matrix, const std::string& filePath, int rows, int cols)
 				{
 					std::ifstream file(filePath, std::ios::binary);
 
