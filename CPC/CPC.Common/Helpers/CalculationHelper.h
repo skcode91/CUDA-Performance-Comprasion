@@ -8,8 +8,8 @@ namespace CPC
 		{
 			namespace CalculationHelper
 			{
-				void calculateOnPaddedMatrix(double**& resultsMatrix, double** matrix, int paddedSizeX, int paddedSizeY);
-				void calculateOnMatrix(double**& resultsMatrix, double** matrix, int rows, int cols);
+				double** calculateOnPaddedMatrix(double** matrix, int rows, int cols);
+				double** calculateOnMatrix(double** matrix, int rows, int cols);
 			}
 		}
 	}
