@@ -14,9 +14,9 @@ int main()
 {
 	//	//	//	settings	//	//	//	//	//	//
 
-	const int sizeX = 20000;	// cols
-	const int sizeY = 20000;	// rows
-	const int subMatrixesCount = 500;
+	const int sizeX = 100;	// cols
+	const int sizeY = 100;	// rows
+	const int subMatrixesCount = 20;
 
 	bool generateMatrix = true;
 	bool saveGeneratedMatrixToFile = false;
