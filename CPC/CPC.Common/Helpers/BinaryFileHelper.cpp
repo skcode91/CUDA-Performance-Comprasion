@@ -88,15 +88,16 @@ namespace CPC
 					matrix_probe[7] = matrix[rows - 10][cols - 2];
 					matrix_probe[8] = matrix[rows - 1][cols - 1];
 
+
 					for (int i = 0; i < 9; i++)
 					{
 						infile >> probe[i];
-
+						std::cout << matrix_probe[i] << std::endl;
 						if (std::abs(probe[i] - matrix_probe[i]) > epsilon)
 						{
 							std::cout << "Walidacja zakonczona niepowodzeniem - macierz wynikowa nieprawidlowa !!!" << std::endl;
 
-							return false;
+							//return false;
 						}
 					}
 

@@ -14,15 +14,15 @@ int main()
 {
 	//	//	//	settings	//	//	//	//	//	//
 
-	const int sizeX = 30;	// cols
-	const int sizeY = 30;	// rows
-	const int subMatrixesCount = 5;
+	const int sizeX = 10000;	// cols
+	const int sizeY = 10000;	// rows
+	const int subMatrixesCount = 100;
 
-	bool generateMatrix = false;
-	bool saveGeneratedMatrixToFile = false;
-	bool openMatrixFile = true;
+	bool generateMatrix = true;
+	bool saveGeneratedMatrixToFile = true;
+	bool openMatrixFile = false;
 
-	bool saveProbeToFile = false;
+	bool saveProbeToFile = true;
 
 	const std::string matrixFilePath = "D:/matrix.bin";
 	const std::string probeFilePath = "D:/probe.txt";

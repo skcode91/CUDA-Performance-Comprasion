@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 namespace CPC
 {
@@ -8,12 +9,24 @@ namespace CPC
 		{
 			namespace CalculationHelper
 			{
+				double median(double arr[], int n) {
+					std::sort(arr, arr + n);
+					if (n % 2 == 0) {
+						return (arr[n / 2 - 1] + arr[n / 2]) / 2.0;
+					}
+					else {
+						return arr[n / 2];
+					}
+				}
+
+
 				double** calculateOnPaddedMatrix(double** matrix, int rows, int cols)
 				{
 					
 					int padSize = 1;
 					int paddedRows = rows;
 					int paddedCols = cols;
+					double *windowArr = new double[8];
 
 					double** resultMatrix = new double* [rows - 2];
 					for (int i = 0; i < rows - 2; i++)
@@ -27,6 +40,7 @@ namespace CPC
 						{
 							double sum = 0.0;
 							int numNeighbors = 8;
+							// 
 							if (i == padSize || i == paddedRows - padSize - 1)
 							{
 								numNeighbors = 5;
@@ -40,15 +54,16 @@ namespace CPC
 							{
 								numNeighbors = 3;
 							}
-							sum += matrix[i - 1][j - 1];
-							sum += matrix[i - 1][j];
-							sum += matrix[i - 1][j + 1];
-							sum += matrix[i][j - 1];
-							sum += matrix[i][j + 1];
-							sum += matrix[i + 1][j - 1];
-							sum += matrix[i + 1][j];
-							sum += matrix[i + 1][j + 1];
-							resultMatrix[i - padSize][j - padSize] = sum / numNeighbors;
+
+							windowArr[0] = matrix[i - 1][j - 1];
+							windowArr[1] = matrix[i - 1][j];
+							windowArr[2] = matrix[i - 1][j + 1];
+							windowArr[3] = matrix[i][j - 1];
+							windowArr[4] = matrix[i][j + 1];
+							windowArr[5] = matrix[i + 1][j - 1];
+							windowArr[6] = matrix[i + 1][j];
+							windowArr[7] = matrix[i + 1][j + 1];
+							resultMatrix[i - padSize][j - padSize] = median(windowArr, 8);
 						}
 					}
 
@@ -57,6 +72,8 @@ namespace CPC
 
 				double** calculateOnMatrix(double** matrix, int rows, int cols)
 				{
+					double* windowArr = new double[8];
+
 					double** resultMatrix = new double* [rows];
 					for (int i = 0; i < rows; i++)
 					{
@@ -68,15 +85,15 @@ namespace CPC
 						for (int j = 1; j < cols - 1; j++)
 						{
 							double sum = 0.0;
-							sum += matrix[i - 1][j - 1];
-							sum += matrix[i - 1][j];
-							sum += matrix[i - 1][j + 1];
-							sum += matrix[i][j - 1];
-							sum += matrix[i][j + 1];
-							sum += matrix[i + 1][j - 1];
-							sum += matrix[i + 1][j];
-							sum += matrix[i + 1][j + 1];
-							resultMatrix[i][j] = sum / 8.0;
+							windowArr[0] = matrix[i - 1][j - 1];
+							windowArr[1] = matrix[i - 1][j];
+							windowArr[2] = matrix[i - 1][j + 1];
+							windowArr[3] = matrix[i][j - 1];
+							windowArr[4] = matrix[i][j + 1];
+							windowArr[5] = matrix[i + 1][j - 1];
+							windowArr[6] = matrix[i + 1][j];
+							windowArr[7] = matrix[i + 1][j + 1];
+							resultMatrix[i][j] = median(windowArr, 8);
 						}
 					}
 
