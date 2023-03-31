@@ -56,9 +56,8 @@ namespace CPC
 					outfile << matrix[0][0] << std::endl
 						<< matrix[10][10] << std::endl
 						<< matrix[rows - 1][0] << std::endl
-						<< matrix[rows - 2][0] << std::endl
 						<< matrix[rows - 10][1] << std::endl
-						<< matrix[rows - 1][0] << std::endl
+						<< matrix[rows / 2][cols / 2] << std::endl
 						<< matrix[10][cols - 10] << std::endl
 						<< matrix[rows - 10][cols - 2] << std::endl
 						<< matrix[rows - 1][cols - 1];
@@ -81,22 +80,20 @@ namespace CPC
 					matrix_probe[0] = matrix[0][0];
 					matrix_probe[1] = matrix[10][10];
 					matrix_probe[2] = matrix[rows - 1][0];
-					matrix_probe[3] = matrix[rows - 2][0];
-					matrix_probe[4] = matrix[rows - 10][1];
-					matrix_probe[5] = matrix[rows - 1][0];
-					matrix_probe[6] = matrix[10][cols - 10];
-					matrix_probe[7] = matrix[rows - 10][cols - 2];
-					matrix_probe[8] = matrix[rows - 1][cols - 1];
+					matrix_probe[3] = matrix[rows - 10][1];
+					matrix_probe[4] = matrix[rows / 2][cols / 2];
+					matrix_probe[5] = matrix[10][cols - 10];
+					matrix_probe[6] = matrix[rows - 10][cols - 2];
+					matrix_probe[7] = matrix[rows - 1][cols - 1];
 
 
-					for (int i = 0; i < 9; i++)
+					for (int i = 0; i < 8; i++)
 					{
 						infile >> probe[i];
-						std::cout << matrix_probe[i] << std::endl;
+						std::cout << std::endl << probe[i] << " <p r> " << matrix_probe[i] << std::endl;
 						if (std::abs(probe[i] - matrix_probe[i]) > epsilon)
 						{
-							std::cout << "Walidacja zakonczona niepowodzeniem - macierz wynikowa nieprawidlowa !!!" << std::endl;
-
+							std::cout << "Walidacja zakonczona niepowodzeniem" << std::endl;
 							//return false;
 						}
 					}

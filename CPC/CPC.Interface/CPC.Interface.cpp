@@ -14,9 +14,9 @@ int main()
 {
 	//	//	//	settings	//	//	//	//	//	//
 
-	const int sizeX = 10000;	// cols
-	const int sizeY = 10000;	// rows
-	const int subMatrixesCount = 100;
+	const int sizeX = 19000;	// cols
+	const int sizeY = 19000;	// rows
+	const int subMatrixesCount = 2;
 
 	bool generateMatrix = true;
 	bool saveGeneratedMatrixToFile = true;
@@ -80,10 +80,18 @@ int main()
 	{
 		CPC::Common::Helpers::BinaryFileHelper::saveMatrixProbe(probeFilePath, results, sizeY, sizeX);
 	}
+	for (int j = 0; j < sizeX; j++)
+	{
+		for (int k = 0; k < sizeY; k++)
+		{
+			//std::cout << results[j][k] << " ";
+		}
+		//std::cout << std::endl;
+	}
 
 	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, results, sizeY, sizeX);
 	CPC::Common::Helpers::MatrixHelper::deleteArray(results, sizeY);
-
+	return 0;
 
 	double*** subMatrixes = CPC::Common::Helpers::MatrixHelper::divideMatrixToZeroPadded(matrix, sizeX, sizeY, sizeXDivided, sizeY, subMatrixesCount, overlap, lastOverlap);
 
@@ -110,10 +118,30 @@ int main()
 	}
 
 
+	for (int i = 0; i < subMatrixesCount; i++)
+	{
+		std::cout<< std::endl;
+		for (int j = 0; j < sizeXDivided; j++)
+		{
+			for (int k = 0; k < sizeY; k++)
+			{
+			//	std::cout << resultsToMerge[i][j][k] << " ";
+			}
+		//	std::cout << std::endl;
+		}
+	}
+
 	double** results2 = CPC::Common::Helpers::MatrixHelper::mergeMatrices(resultsToMerge, sizeX, sizeY, subMatrixesCount, sizeXDivided, overlap, lastOverlap);
 	clock_t end2 = clock();
 	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, results2, sizeY, sizeX);
-
+	for (int j = 0; j < sizeX; j++)
+	{
+		for (int k = 0; k < sizeY; k++)
+		{
+			std::cout << results2[j][k] << " ";
+		}
+		std::cout << std::endl;
+	}
 
 	double duration2 = double(end2 - start2) / CLOCKS_PER_SEC * 1000;
 	std::cout << "Obliczenia zakonczono w czasie " << duration2 << " ms" << std::endl;

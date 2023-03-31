@@ -159,19 +159,19 @@ namespace CPC
 					}
 
 					// last matrix
-						int absoluteOffset = (sizeX - sizeXDivided) * sizeY;
-						for (int x = 0; x < sizeXDivided; x++)
+					int absoluteOffset = (sizeX - sizeXDivided) * sizeY;
+					for (int x = 0; x < sizeXDivided; x++)
+					{
+						int offsetX = x * sizeY;
+						for (int y = 0; y < sizeY; y++)
 						{
-							int offsetX = x * sizeY;
-							for (int y = 0; y < sizeY; y++)
-							{
-								int offsetY = y;
-								int offset = absoluteOffset + offsetX + offsetY;
-								*(allocatedData + offset) = PResultsToMerge[subMatrixesCount - 1][x][y];
-							}
+							int offsetY = y;
+							int offset = absoluteOffset + offsetX + offsetY;
+							*(allocatedData + offset) = PResultsToMerge[subMatrixesCount - 1][x][y];
 						}
-					
-						return mergedMatrix;
+					}
+
+					return mergedMatrix;
 
 				}
 
