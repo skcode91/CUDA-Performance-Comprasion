@@ -24,7 +24,7 @@
     <ClInclude Include="Helpers\MatrixHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Helpers\CalculationHelper.h">
+    <ClInclude Include="SingleCore\SingleCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClCompile Include="Helpers\MatrixHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Helpers\CalculationHelper.cpp">
+    <ClCompile Include="SingleCore\SingleCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

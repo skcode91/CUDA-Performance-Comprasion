@@ -94,7 +94,7 @@ namespace CPC
 						if (std::abs(probe[i] - matrix_probe[i]) > epsilon)
 						{
 							std::cout << "Walidacja zakonczona niepowodzeniem" << std::endl;
-							//return false;
+							return false;
 						}
 					}
 
