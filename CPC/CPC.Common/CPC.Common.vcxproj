@@ -141,12 +141,14 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="Helpers\BinaryFileHelper.h" />
+    <ClInclude Include="MultiCore\MultiCore.h" />
     <ClInclude Include="SingleCore\SingleCore.h" />
     <ClInclude Include="Helpers\MatrixHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Helpers\BinaryFileHelper.cpp" />
     <ClCompile Include="Helpers\MatrixHelper.cpp" />
+    <ClCompile Include="MultiCore\MultiCore.cpp" />
     <ClCompile Include="SingleCore\SingleCore.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

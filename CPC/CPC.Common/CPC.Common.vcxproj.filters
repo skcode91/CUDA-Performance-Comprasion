@@ -27,6 +27,9 @@
     <ClInclude Include="SingleCore\SingleCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MultiCore\MultiCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Helpers\BinaryFileHelper.cpp">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SingleCore\SingleCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiCore\MultiCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
