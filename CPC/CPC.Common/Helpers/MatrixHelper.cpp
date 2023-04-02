@@ -1,5 +1,6 @@
-#include "MatrixHelper.h"
+#include "./MatrixHelper.h"
 #include <iostream>
+#include <algorithm>
 
 namespace CPC
 {
@@ -9,7 +10,20 @@ namespace CPC
 		{
 			namespace MatrixHelper
 			{
-				void fillMatrix(double** matrix, int rows, int cols)
+				double median(double arr[], int n)
+				{
+					std::sort(arr, arr + n);
+					if (n % 2 == 0)
+					{
+						return (arr[n / 2 - 1] + arr[n / 2]) / 2.0;
+					}
+					else
+					{
+						return arr[n / 2];
+					}
+				}
+
+				void fillMatrix(double **matrix, int rows, int cols)
 				{
 					srand(time(NULL));
 					for (int i = 0; i < rows; i++)
@@ -22,15 +36,15 @@ namespace CPC
 					}
 				}
 
-				double** generateMatrix(int rows, int cols)
+				double **generateMatrix(int rows, int cols)
 				{
-					double** matrix = new double* [rows];
+					double **matrix = new double *[rows];
 					fillMatrix(matrix, rows, cols);
 
 					return matrix;
 				}
 
-				void divideWithOverlap(int arrSize, int subArraysCount, int overlap, int* PElementsInArray, int* POverlapLast)
+				void divideWithOverlap(int arrSize, int subArraysCount, int overlap, int *PElementsInArray, int *POverlapLast)
 				{
 					int totalOverlap = overlap * (subArraysCount - 1);
 					int totalElements = arrSize + totalOverlap;
@@ -49,13 +63,13 @@ namespace CPC
 					}
 				}
 
-				double** createZeroPaddedMatrix(double** matrix, int sizeX, int sizeY)
+				double **createZeroPaddedMatrix(double **matrix, int sizeX, int sizeY)
 				{
 					int paddedSizeX = sizeX + 2;
 					int paddedSizeY = sizeY + 2;
 
-					double* allocatedMemory = new double[paddedSizeX * paddedSizeY];
-					double** paddedMatrix = new double* [paddedSizeX];
+					double *allocatedMemory = new double[paddedSizeX * paddedSizeY];
+					double **paddedMatrix = new double *[paddedSizeX];
 					for (int i = 0; i < paddedSizeX; i++)
 					{
 						paddedMatrix[i] = allocatedMemory + i * paddedSizeY;
@@ -79,18 +93,19 @@ namespace CPC
 					return paddedMatrix;
 				}
 
-				double*** divideMatrixToZeroPadded(double** matrix, int sizeX, int sizeY, int sizeXDivided, int sizeYDivided, int subMatrixesCount, int overlap, int lastOverlap)
+				double ***divideMatrixToZeroPadded(double **matrix, int sizeX, int sizeXDivided, int sizeYDivided, int subMatrixesCount, int overlap)
 				{
-					double* PMatrix = *matrix;
 					int paddedSizeX = sizeXDivided + 2;
 					int paddedSizeY = sizeYDivided + 2;
 
-					double* allocatedMemory = new double[subMatrixesCount * paddedSizeX * paddedSizeY];
-					double*** subMatrices = new double** [subMatrixesCount];
+					double *allocatedMemory = new double[subMatrixesCount * paddedSizeX * paddedSizeY];
+					double ***subMatrices = new double **[subMatrixesCount];
 
-					for (int i = 0; i < subMatrixesCount; i++) {
-						subMatrices[i] = new double* [paddedSizeX];
-						for (int j = 0; j < paddedSizeX; j++) {
+					for (int i = 0; i < subMatrixesCount; i++)
+					{
+						subMatrices[i] = new double *[paddedSizeX];
+						for (int j = 0; j < paddedSizeX; j++)
+						{
 							subMatrices[i][j] = allocatedMemory + i * paddedSizeX * paddedSizeY + j * paddedSizeY;
 						}
 					}
@@ -115,7 +130,6 @@ namespace CPC
 								}
 								else
 								{
-									double w = matrix[startAbsoluteX + x - 1][y - 1];
 									*(allocatedMemory + offset) = matrix[startAbsoluteX + x - 1][y - 1];
 								}
 							}
@@ -130,16 +144,17 @@ namespace CPC
 					return subMatrices;
 				}
 
-				double** mergeMatrices(double*** PResultsToMerge, int sizeX, int sizeY, int subMatrixesCount, int sizeXDivided, int overlap, int lastOverlap)
+				double **mergeMatrices(double ***PResultsToMerge, int sizeX, int sizeY, int subMatrixesCount, int sizeXDivided, int overlap)
 				{
-					double* allocatedData = new double[sizeX * sizeY];
-					double** mergedMatrix = new double* [sizeX];
+					double *allocatedData = new double[sizeX * sizeY];
+					double **mergedMatrix = new double *[sizeX];
 
-					for (int i = 0; i < sizeX; i++) {
+					for (int i = 0; i < sizeX; i++)
+					{
 						mergedMatrix[i] = allocatedData + i * sizeY;
 					}
 
-					//without last matrix
+					// without last matrix
 					for (int i = 0; i < subMatrixesCount - 1; i++)
 					{
 						int absoluteOffset = i * (sizeXDivided * sizeY - (overlap * sizeY));
@@ -172,27 +187,29 @@ namespace CPC
 					}
 
 					return mergedMatrix;
-
 				}
 
-				void deleteArray(double* arr)
+				void deleteArray(double *arr)
 				{
 					delete[] arr;
 				}
 
-				void deleteArray(double** arr, int x)
+				void deleteArray(double **arr, int x)
 				{
-					for (int i = 0; i < x; i++) {
+					for (int i = 0; i < x; i++)
+					{
 						delete[] arr[i];
 					}
 
 					delete[] arr;
 				}
 
-				void deleteArray(double*** arr, int x, int y)
+				void deleteArray(double ***arr, int x, int y)
 				{
-					for (int i = 0; i < x; i++) {
-						for (int j = 0; j < y; j++) {
+					for (int i = 0; i < x; i++)
+					{
+						for (int j = 0; j < y; j++)
+						{
 							delete[] arr[i][j];
 						}
 						delete[] arr[i];

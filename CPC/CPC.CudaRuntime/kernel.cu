@@ -3,40 +3,46 @@
 #include "device_launch_parameters.h"
 #include <iostream>
 #include <stdio.h>
-#include "../CPC.Common/Helpers/MatrixHelper.cpp"
-#include "../CPC.Common/Helpers/CalculationHelper.h"
-#include "../CPC.Common/Helpers/BinaryFileHelper.cpp"
+#include "../CPC.Common/Helpers/MatrixHelper.h"
+#include "../CPC.Common/Helpers/BinaryFileHelper.h"
 
-__device__ inline double getMedian(double* values, int size)
+__device__ inline double getMedian(double *values, int size)
 {
-	for (int i = 1; i < size; i++) {
+	for (int i = 1; i < size; i++)
+	{
 		double key = values[i];
 		int j = i - 1;
-		while (j >= 0 && values[j] > key) {
+		while (j >= 0 && values[j] > key)
+		{
 			values[j + 1] = values[j];
 			j = j - 1;
 		}
 		values[j + 1] = key;
 	}
-	if (size % 2 == 0) {
+	if (size % 2 == 0)
+	{
 		return (values[size / 2 - 1] + values[size / 2]) / 2.0;
 	}
-	else {
+	else
+	{
 		return values[size / 2];
 	}
 }
 
-__global__ void medianFilter(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void medianFilter(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	unsigned int ix = threadIdx.x + blockIdx.x * blockDim.x;
 	unsigned int iy = threadIdx.y + blockIdx.y * blockDim.y;
 	unsigned int idx = iy * sizeX + ix;
 
-	if (ix >= 1 && iy >= 1 && ix < sizeX - 1 && iy < sizeY - 1) {
+	if (ix >= 1 && iy >= 1 && ix < sizeX - 1 && iy < sizeY - 1)
+	{
 		double windowValues[9];
 		int windowIndex = 0;
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dy = -1; dy <= 1; dy++)
+			{
 				unsigned int windowIdx = (iy + dy) * sizeX + (ix + dx);
 				windowValues[windowIndex++] = inputMatrix[windowIdx];
 			}
@@ -45,17 +51,20 @@ __global__ void medianFilter(double* inputMatrix, double* outputMatrix, int size
 	}
 }
 
-__global__ void medianFilterFirstRow(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void medianFilterFirstRow(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	unsigned int ix = threadIdx.x + blockIdx.x * blockDim.x + 1;
 	unsigned int iy = 0;
 	unsigned int idx = iy * sizeX + ix;
 
-	if (ix < sizeX - 1) {
+	if (ix < sizeX - 1)
+	{
 		double windowValues[6];
 		int windowIndex = 0;
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dy = 0; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dy = 0; dy <= 1; dy++)
+			{
 				unsigned int windowIdx = (iy + dy) * sizeX + (ix + dx);
 				windowValues[windowIndex++] = inputMatrix[windowIdx];
 			}
@@ -64,17 +73,20 @@ __global__ void medianFilterFirstRow(double* inputMatrix, double* outputMatrix, 
 	}
 }
 
-__global__ void medianFilterFirstColumn(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void medianFilterFirstColumn(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	unsigned int ix = 0;
-	unsigned int iy = threadIdx.y + blockIdx.y * blockDim.y + 1;
+	unsigned int iy = threadIdx.x + blockIdx.x * blockDim.x + 1;
 	unsigned int idx = iy * sizeX + ix;
 
-	if (iy < sizeY - 1) {
+	if (iy < sizeY - 1)
+	{
 		double windowValues[6];
 		int windowIndex = 0;
-		for (int dx = 0; dx <= 1; dx++) {
-			for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = 0; dx <= 1; dx++)
+		{
+			for (int dy = -1; dy <= 1; dy++)
+			{
 				unsigned int windowIdx = (iy + dy) * sizeX + (ix + dx);
 				windowValues[windowIndex++] = inputMatrix[windowIdx];
 			}
@@ -83,17 +95,20 @@ __global__ void medianFilterFirstColumn(double* inputMatrix, double* outputMatri
 	}
 }
 
-__global__ void medianFilterLastColumn(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void medianFilterLastColumn(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	unsigned int ix = sizeX - 1;
-	unsigned int iy = threadIdx.y + blockIdx.y * blockDim.y + 1;
+	unsigned int iy = threadIdx.x + blockIdx.x * blockDim.x + 1;
 	unsigned int idx = iy * sizeX + ix;
 
-	if (iy < sizeY - 1) {
+	if (iy < sizeY - 1)
+	{
 		double windowValues[6];
 		int windowIndex = 0;
-		for (int dx = -1; dx <= 0; dx++) {
-			for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 0; dx++)
+		{
+			for (int dy = -1; dy <= 1; dy++)
+			{
 				unsigned int windowIdx = (iy + dy) * sizeX + (ix + dx);
 				windowValues[windowIndex++] = inputMatrix[windowIdx];
 			}
@@ -102,18 +117,20 @@ __global__ void medianFilterLastColumn(double* inputMatrix, double* outputMatrix
 	}
 }
 
-
-__global__ void medianFilterLastRow(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void medianFilterLastRow(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	unsigned int ix = threadIdx.x + blockIdx.x * blockDim.x + 1;
 	unsigned int iy = sizeY - 1;
 	unsigned int idx = iy * sizeX + ix;
 
-	if (ix < sizeX - 1) {
+	if (ix < sizeX - 1)
+	{
 		double windowValues[6];
 		int windowIndex = 0;
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dy = -1; dy <= 0; dy++) {
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dy = -1; dy <= 0; dy++)
+			{
 				unsigned int windowIdx = (iy + dy) * sizeX + (ix + dx);
 				windowValues[windowIndex++] = inputMatrix[windowIdx];
 			}
@@ -122,10 +139,9 @@ __global__ void medianFilterLastRow(double* inputMatrix, double* outputMatrix, i
 	}
 }
 
-__global__ void calculateCorners(double* inputMatrix, double* outputMatrix, int sizeX, int sizeY)
+__global__ void calculateCorners(double *inputMatrix, double *outputMatrix, int sizeX, int sizeY)
 {
 	double cornerValues[4];
-
 
 	// left - up corner
 	cornerValues[0] = inputMatrix[0];
@@ -158,62 +174,61 @@ __global__ void calculateCorners(double* inputMatrix, double* outputMatrix, int 
 
 int main()
 {
-		//	//	//	settings	//	//	//	//	//	//
+	//	//	//	settings	//	//	//	//	//	//
 
-	const int sizeX = 19000;	// cols
-	const int sizeY = 19000;	// rows
+	const int sizeX = 15000; // cols
+	const int sizeY = 15000; // rows
+	int cycles = 5;
 
-	const std::string matrixFilePath = "D:/matrix.bin";
-	const std::string probeFilePath = "D:/probe.txt";
+	const std::string matrixFilePath = "./matrix.bin";
+	const std::string probeFilePath = "./probe.txt";
 
 	//	//	//	//	//	//	//	//	//	//	//	//
 
-	std::cout << "Ilosc pamieci wykorzystywanej przez macierz to " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
+	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
 
 	// allocate memory
 
-	double* inputMatrixVector = new double[sizeX * sizeY];
-	double** inputMatrix = new double* [sizeX];
+	double *inputMatrixVector = new double[sizeX * sizeY];
+	double **inputMatrix = new double *[sizeX];
 	for (int i = 0; i < sizeX; i++)
 	{
 		inputMatrix[i] = inputMatrixVector + i * sizeY;
 	}
 
-	double* outputMatrixVector = new double[sizeX * sizeY];
-	double** outputMatrix = new double* [sizeX];
+	double *outputMatrixVector = new double[sizeX * sizeY];
+	double **outputMatrix = new double *[sizeX];
 	for (int i = 0; i < sizeX; i++)
 	{
 		outputMatrix[i] = outputMatrixVector + i * sizeY;
 	}
 
-
-	std::cout << "Otwieranie pliku..." << std::endl;
+	std::cout << "opening file..." << std::endl;
 	CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(inputMatrix, matrixFilePath, sizeY, sizeX);
 
-
 	// allocate memory on GPU
-	double* gpuOutputMatrix;
-	double* gpuInputMatrix;
-
+	double *gpuOutputMatrix;
+	double *gpuInputMatrix;
 
 	cudaMalloc(&gpuInputMatrix, sizeX * sizeY * sizeof(double));
 	cudaMalloc(&gpuOutputMatrix, sizeX * sizeY * sizeof(double));
 
 	cudaError_t error = cudaGetLastError();
-	if (error != cudaSuccess) {
-		printf("cudaMemcpy error 1: %s\n", cudaGetErrorString(error));
+	if (error != cudaSuccess)
+	{
+		printf("error: %s\n", cudaGetErrorString(error));
 	}
 	// copy from host to gpu
 	cudaMemcpy(gpuInputMatrix, inputMatrixVector, sizeX * sizeY * sizeof(double), cudaMemcpyHostToDevice);
 	error = cudaGetLastError();
-	if (error != cudaSuccess) {
-		printf("cudaMemcpy error 1: %s\n", cudaGetErrorString(error));
+	if (error != cudaSuccess)
+	{
+		printf("error: %s\n", cudaGetErrorString(error));
 	}
 
 	// kernel sizes
 	int blockSizeX = 32;
 	int blockSizeY = 32;
-
 
 	dim3 blockMedian(blockSizeX, blockSizeY);
 	dim3 gridMedian((sizeX + blockMedian.x - 1) / blockMedian.x, (sizeY + blockMedian.y - 1) / blockMedian.y);
@@ -221,57 +236,86 @@ int main()
 	dim3 blockFirstRow(blockSizeX);
 	dim3 gridFirstRow((sizeX - 2 + blockFirstRow.x - 1) / blockFirstRow.x);
 
-	dim3 blockFirstColumn(1, blockSizeY);
-	dim3 gridFirstColumn((sizeY - 2 + blockFirstColumn.y - 1) / blockFirstColumn.y);
+	dim3 blockFirstColumn(blockSizeX);
+	dim3 gridFirstColumn((sizeX - 2 + blockFirstColumn.x - 1) / blockFirstColumn.x);
 
-	dim3 blockLastColumn(1, blockSizeY);
-	dim3 gridLastColumn((sizeY - 2 + blockLastColumn.y - 1) / blockLastColumn.y);
+	dim3 blockLastColumn(blockSizeX);
+	dim3 gridLastColumn((sizeX - 2 + blockLastColumn.x - 1) / blockLastColumn.x);
 
 	dim3 blockLastRow(blockSizeX, 1);
 	dim3 gridLastRow((sizeX - 2 + blockLastRow.x - 1) / blockLastRow.x);
 
-	// computing 
-	clock_t start = clock();
+	// create cuda timer
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
 
-	medianFilter << <gridMedian, blockMedian >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+	// start the timer
+	cudaEventRecord(start, 0);
 
-	cudaDeviceSynchronize();
+	// computing
+	for (int i = 0; i < cycles; i++)
+	{
+		std::cout << "computing iteration " << i + 1 << "/" << cycles << std::endl;
 
-	medianFilterFirstRow << <gridFirstRow, blockFirstRow >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
-	medianFilterLastRow << <gridLastRow, blockLastRow >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
-	medianFilterFirstColumn << <gridFirstColumn, blockFirstColumn >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
-	medianFilterLastColumn << <gridLastColumn, blockLastColumn >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
-	calculateCorners << <1, 1 >> > (gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
-
-	cudaDeviceSynchronize();
-
-	clock_t end = clock();
+		if (i % 2 == 0)
+		{
+			medianFilter<<<gridMedian, blockMedian>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			cudaDeviceSynchronize();
+			medianFilterFirstRow<<<gridFirstRow, blockFirstRow>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			medianFilterLastRow<<<gridLastRow, blockLastRow>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			medianFilterFirstColumn<<<gridFirstColumn, blockFirstColumn>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			medianFilterLastColumn<<<gridLastColumn, blockLastColumn>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			calculateCorners<<<1, 1>>>(gpuInputMatrix, gpuOutputMatrix, sizeX, sizeY);
+			cudaDeviceSynchronize();
+		}
+		else
+		{
+			medianFilter<<<gridMedian, blockMedian>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			cudaDeviceSynchronize();
+			medianFilterFirstRow<<<gridFirstRow, blockFirstRow>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			medianFilterLastRow<<<gridLastRow, blockLastRow>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			medianFilterFirstColumn<<<gridFirstColumn, blockFirstColumn>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			medianFilterLastColumn<<<gridLastColumn, blockLastColumn>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			calculateCorners<<<1, 1>>>(gpuOutputMatrix, gpuInputMatrix, sizeX, sizeY);
+			cudaDeviceSynchronize();
+		}
+	}
 
 	// end of computing
 
+	// stop the timer and calculate the elapsed time
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	float elapsed;
+	cudaEventElapsedTime(&elapsed, start, stop);
 
-	double duration = double(end - start) / CLOCKS_PER_SEC * 500;
-
-	std::cout << "Obliczenia zakonczono w czasie " << duration << " ms" << std::endl;
+	// print the result
+	std::cout << "computing finished in " << elapsed / 1000.0 << " s" << std::endl;
+	
+	// cleanup
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 	error = cudaGetLastError();
-	if (error != cudaSuccess) {
-		printf("cudaMemcpy error 4: %s\n", cudaGetErrorString(error));
+	if (error != cudaSuccess)
+	{
+		printf("error: %s\n", cudaGetErrorString(error));
 	}
 
 	cudaDeviceSynchronize();
 
-	cudaMemcpy(outputMatrixVector, gpuOutputMatrix, sizeX * sizeY * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(outputMatrixVector, cycles % 2 == 0 ? gpuInputMatrix : gpuOutputMatrix, sizeX * sizeY * sizeof(double), cudaMemcpyDeviceToHost);
 
-
-	//std::cout << std::endl;
-	//printMatrix(outputMatrix[0], sizeX, sizeY);
-	//std::cout << std::endl;
-	//printMatrix(inputMatrix[0], sizeX, sizeY);
+	// std::cout << std::endl;
+	// printMatrix(outputMatrix[0], sizeX, sizeY);
+	// std::cout << std::endl;
+	// printMatrix(inputMatrix[0], sizeX, sizeY);
 
 	error = cudaGetLastError();
-	if (error != cudaSuccess) {
-		printf("cudaMemcpy error (DeviceToHost): %s\n", cudaGetErrorString(error));
+	if (error != cudaSuccess)
+	{
+		printf("error: %s\n", cudaGetErrorString(error));
 	}
 	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, outputMatrix, sizeY, sizeX);
 
