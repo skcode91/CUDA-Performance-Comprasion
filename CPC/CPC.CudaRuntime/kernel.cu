@@ -176,16 +176,16 @@ int main()
 {
 	//	//	//	settings	//	//	//	//	//	//
 
-	const int sizeX = 15000; // cols
-	const int sizeY = 15000; // rows
+	const int sizeX = 19000; // cols
+	const int sizeY = 19000; // rows
 	int cycles = 5;
 
-	const std::string matrixFilePath = "./matrix.bin";
-	const std::string probeFilePath = "./probe.txt";
+	const std::string matrixFilePath = "d:/matrix.bin";
+	const std::string probeFilePath = "d:/probe.txt";
 
 	//	//	//	//	//	//	//	//	//	//	//	//
 
-	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
+	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb, matrix size: " << sizeX << " x " << sizeY << std::endl;
 
 	// allocate memory
 
@@ -203,8 +203,6 @@ int main()
 		outputMatrix[i] = outputMatrixVector + i * sizeY;
 	}
 
-	std::cout << "opening file..." << std::endl;
-	CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(inputMatrix, matrixFilePath, sizeY, sizeX);
 
 	// allocate memory on GPU
 	double *gpuOutputMatrix;
@@ -218,6 +216,11 @@ int main()
 	{
 		printf("error: %s\n", cudaGetErrorString(error));
 	}
+
+	//reading data on host
+	std::cout << "opening file..." << std::endl;
+	CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(inputMatrix, matrixFilePath, sizeY, sizeX);
+
 	// copy from host to gpu
 	cudaMemcpy(gpuInputMatrix, inputMatrixVector, sizeX * sizeY * sizeof(double), cudaMemcpyHostToDevice);
 	error = cudaGetLastError();
@@ -306,11 +309,6 @@ int main()
 	cudaDeviceSynchronize();
 
 	cudaMemcpy(outputMatrixVector, cycles % 2 == 0 ? gpuInputMatrix : gpuOutputMatrix, sizeX * sizeY * sizeof(double), cudaMemcpyDeviceToHost);
-
-	// std::cout << std::endl;
-	// printMatrix(outputMatrix[0], sizeX, sizeY);
-	// std::cout << std::endl;
-	// printMatrix(inputMatrix[0], sizeX, sizeY);
 
 	error = cudaGetLastError();
 	if (error != cudaSuccess)

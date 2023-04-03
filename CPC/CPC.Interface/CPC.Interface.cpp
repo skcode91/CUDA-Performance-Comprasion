@@ -18,15 +18,15 @@ int main()
 	const int sizeY = 19000; // rows
 	const int cycles = 5;
 
-	bool generateMatrix = true;
-	bool saveGeneratedMatrixToFile = true;
-	bool openMatrixFile = false;
-	bool parallel = true;
+	bool generateMatrix = false;
+	bool saveGeneratedMatrixToFile = false;
+	bool openMatrixFile = true;
+	bool parallel = false;
 
-	bool saveProbeToFile = true;
+	bool saveProbeToFile = false;
 
-	const std::string matrixFilePath = "./matrix.bin";
-	const std::string probeFilePath = "./probe.txt";
+	const std::string matrixFilePath = "d:/matrix.bin";
+	const std::string probeFilePath = "d:/probe.txt";
 
 	// allocate memory
 	double *PInput = new double[sizeX * sizeY];
@@ -42,7 +42,7 @@ int main()
 	{
 		output[i] = POutput + i * sizeY;
 	}
-	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
+	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb, matrix size: " << sizeX << " x " << sizeY << std::endl;
 
 	// creating data
 	if (generateMatrix)
@@ -79,7 +79,7 @@ int main()
 
 	for (int i = 0; i < cycles; i++)
 	{
-		std::cout << "computing iteration " << i + 1 << "/" << cycles << std::endl;
+		std::cout << "computing on "<< (parallel ? "multi cores" : "single core") << ", iteration " << i + 1 << "/" << cycles << std::endl;
 
 		if (i % 2 == 0)
 		{
