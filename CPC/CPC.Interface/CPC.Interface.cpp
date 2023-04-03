@@ -3,74 +3,108 @@
 
 #include <iostream>
 #include <ctime>
+#include <functional>
+#include <omp.h>
 
-#include "../CPC.Common/Helpers/MatrixHelper.cpp"
-#include "../CPC.Common/Helpers/CalculationHelper.h"
-#include "../CPC.Common/Helpers/BinaryFileHelper.cpp"
+#include "../CPC.Common/Helpers/MatrixHelper.h"
+#include "../CPC.Common/Helpers/BinaryFileHelper.h"
+#include "../CPC.Common/SingleCore/SingleCore.h"
+#include "../CPC.Common/MultiCore/MultiCore.h"
 
 int main()
 {
-	std::cout << "-------------------------------" << std::endl;
-	const int rows = 10000;
-	const int cols = 10000;
-	const std::string matrixFilePath = "./matrix.bin";
-	const std::string probeFilePath = "./probe.bin";
+	// variables
+	const int sizeX = 19000; // cols
+	const int sizeY = 19000; // rows
+	const int cycles = 5;
 
-	std::cout << "Ilosc pamieci wykorzystywanej przez macierz to " << rows * cols / 1024 / 1024 * sizeof(double) << " Mb" << std::endl;
+	bool generateMatrix = false;
+	bool saveGeneratedMatrixToFile = false;
+	bool openMatrixFile = true;
+	bool parallel = false;
 
-	std::cout << "Generowanie macierzy..." << std::endl;
-	double** matrix = CPC::Common::Helpers::MatrixHelper::generateMatrix(rows, cols);
+	bool saveProbeToFile = false;
 
-	//std::cout << "Zapisywanie do pliku..." << std::endl;
-	//CPC::Common::Helpers::BinaryFileHelper::saveMatrixToFile(matrix, rows, cols, matrixFilePath);
+	const std::string matrixFilePath = "d:/matrix.bin";
+	const std::string probeFilePath = "d:/probe.txt";
 
-	//std::cout << "Otwieranie pliku..." << std::endl;
-	//double** matrix = CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(matrixFilePath, rows, cols);
-
-	clock_t start = clock();
-
-	std::cout << "Obliczenia..." << std::endl;
-	double** results = CPC::Common::Helpers::CalculationHelper::calculateOnMatrix(matrix, rows, cols);
-
-	clock_t end = clock();
-	double duration = double(end - start) / CLOCKS_PER_SEC * 1000;
-
-	std::cout << "Obliczenia zakonczono w czasie " << duration << " ms" << std::endl;
-
-	CPC::Common::Helpers::BinaryFileHelper::saveMatrixProbe(probeFilePath, results, rows, cols);
-	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, results, rows, cols);
-	CPC::Common::Helpers::MatrixHelper::deleteArray(results, rows);
-
-	const int subMatrixesCount = 1000;
-	int paddedSizeX, paddedSizeY;
-
-	double*** subMatrixes = CPC::Common::Helpers::MatrixHelper::divideMatrixToZeroPadded(matrix, rows, cols, subMatrixesCount, paddedSizeX, paddedSizeY);;
-	double*** resultsToMerge = new double** [subMatrixesCount];
-
-	CPC::Common::Helpers::MatrixHelper::deleteArray(matrix, rows);
-
-	clock_t start2 = clock();
-
-	for (int i = 0; i < subMatrixesCount; i++)
+	// allocate memory
+	double *PInput = new double[sizeX * sizeY];
+	double **input = new double *[sizeX];
+	for (int i = 0; i < sizeX; i++)
 	{
-		resultsToMerge[i] = CPC::Common::Helpers::CalculationHelper::calculateOnMatrix(subMatrixes[i], rows, cols);
+		input[i] = PInput + i * sizeY;
 	}
 
-	double** results2 = CPC::Common::Helpers::MatrixHelper::mergeMatrices(resultsToMerge, subMatrixesCount, paddedSizeX, paddedSizeY, cols);
-	clock_t end2 = clock();
+	double *POutput = new double[sizeX * sizeY];
+	double **output = new double *[sizeX];
+	for (int i = 0; i < sizeX; i++)
+	{
+		output[i] = POutput + i * sizeY;
+	}
+	std::cout << "allocated memory: 2 x " << sizeY * sizeX / 1024 / 1024 * sizeof(double) << " Mb, matrix size: " << sizeX << " x " << sizeY << std::endl;
 
+	// creating data
+	if (generateMatrix)
+	{
+		std::cout << "generating data..." << std::endl;
+		CPC::Common::Helpers::MatrixHelper::fillMatrix(input, sizeY, sizeX);
+	}
 
-	double duration2 = double(end2 - start2) / CLOCKS_PER_SEC * 1000;
-	std::cout << "Obliczenia2 zakonczono w czasie " << duration2 << " ms" << std::endl;
-	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, results2, rows, cols);
+	if (saveGeneratedMatrixToFile)
+	{
+		std::cout << "saving to file..." << std::endl;
+		CPC::Common::Helpers::BinaryFileHelper::saveMatrixToFile(input, sizeY, sizeX, matrixFilePath);
+	}
 
-	CPC::Common::Helpers::MatrixHelper::deleteArray(subMatrixes, subMatrixesCount, rows);
-	CPC::Common::Helpers::MatrixHelper::deleteArray(resultsToMerge, subMatrixesCount, rows);
+	if (openMatrixFile)
+	{
+		std::cout << "opening file..." << std::endl;
+		CPC::Common::Helpers::BinaryFileHelper::readMatrixFromFile(input, matrixFilePath, sizeY, sizeX);
+	}
 
+	// select function to compute
+	void (*selectedFunction)(double **, double **, int, int);
+	if (parallel)
+	{
+		selectedFunction = CPC::Common::MultiCore::MultiCore::medianFilter;
+	}
+	else
+	{
+		selectedFunction = CPC::Common::SingleCore::SingleCore::medianFilter;
+	}
 
-	CPC::Common::Helpers::MatrixHelper::deleteArray(matrix, rows);
+	// computing
+	double start = omp_get_wtime();
 
-	std::cout << "-------------------------------" << std::endl;
+	for (int i = 0; i < cycles; i++)
+	{
+		std::cout << "computing on "<< (parallel ? "multi cores" : "single core") << ", iteration " << i + 1 << "/" << cycles << std::endl;
+
+		if (i % 2 == 0)
+		{
+			selectedFunction(input, output, sizeY, sizeX);
+		}
+		else
+		{
+			selectedFunction(output, input, sizeY, sizeX);
+		}
+	}
+
+	double end = omp_get_wtime();
+
+	// finalize
+	double duration = end - start;
+	std::cout << "Computing finished in " << duration << " s" << std::endl;
+
+	if (saveProbeToFile)
+	{
+		CPC::Common::Helpers::BinaryFileHelper::saveMatrixProbe(probeFilePath, cycles % 2 == 0 ? input : output, sizeY, sizeX);
+	}
+
+	CPC::Common::Helpers::BinaryFileHelper::validateMatrixProbe(probeFilePath, cycles % 2 == 0 ? input : output, sizeY, sizeX);
+
+	// CPC::Common::Helpers::MatrixHelper::deleteArray(input, sizeY);
+	// CPC::Common::Helpers::MatrixHelper::deleteArray(output, sizeY);
 	return 0;
 }
-

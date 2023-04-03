@@ -1,0 +1,26 @@
+# Compiler
+NVCC = nvcc
+
+# Compiler flags
+NVCCFLAGS = -std=c++14 -O2
+
+# Include directories
+INCLUDES = -I./CPC.Common/Helpers -I./CPC.Common/SingleCore -I./CPC.Common/MultiCore
+
+# Source files
+SRCS = CPC.CudaRuntime/kernel.cu \
+       CPC.Common/Helpers/BinaryFileHelper.cpp \
+       CPC.Common/Helpers/MatrixHelper.cpp \
+       CPC.Common/SingleCore/SingleCore.cpp \
+       CPC.Common/MultiCore/MultiCore.cpp
+
+# Output executable
+TARGET = GPU
+
+all: $(TARGET)
+
+$(TARGET): $(SRCS)
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) $^ -o $@
+
+clean:
+	rm -f $(TARGET)

@@ -3,10 +3,12 @@ CPC/x64/*
 CPC/x64/**
 CPC/.vs/*
 CPC/.vs/**
+CPC/Debug/*
+CPC/Debug/**
 CPC/CPC.Interface/x64/*
 CPC/CPC.Interface/x64/**
 CPC/CPC.Common/x64/*
 CPC/CPC.Common/x64/**
 CPC/**/*.user
-CPC/**/*.vcxproj
-CPC/**/*.filters
+CPC/CPC.Interface/probe.bin
+CPC/CPC.Interface/matrix.bin

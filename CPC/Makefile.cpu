@@ -1,0 +1,26 @@
+# Compiler
+CXX = g++
+
+# Compiler flags
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -fopenmp
+
+# Include directories
+INCLUDES = -I./CPC.Common/Helpers -I./CPC.Common/SingleCore -I./CPC.Common/MultiCore
+
+# Source files
+SRCS = CPC.Interface/CPC.Interface.cpp \
+       CPC.Common/Helpers/BinaryFileHelper.cpp \
+       CPC.Common/Helpers/MatrixHelper.cpp \
+       CPC.Common/SingleCore/SingleCore.cpp \
+       CPC.Common/MultiCore/MultiCore.cpp
+
+# Output executable
+TARGET = CPU
+
+all: $(TARGET)
+
+$(TARGET): $(SRCS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o $@
+
+clean:
+	rm -f $(TARGET)
